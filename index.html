@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>CO2 Climate Change Visualization</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Oswald"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/design.css" />
+  </head>
+
+  <body>
+    <!-- Code for steps 1 to 3 goes here -->
+    <div id="header"><img src="img/co2.png" id="badge" /></div>
+    <div id="inner">
+      <input
+        class="slide"
+        type="range"
+        min="0"
+        max="7"
+        step="1"
+        value="0"
+        oninput="showVal(this.value)"
+      />
+      <p>Drag the slider to see diffrence in CO2</p>
+    </div>
+
+    <script src="js/three.min.js"></script>
+    <script src="js/ColladaLoader.js"></script>
+    <script src="js/tween.min.js"></script>
+    <script src="js/postprocessing/EffectComposer.js"></script>
+    <script src="js/postprocessing/RenderPass.js"></script>
+    <script src="js/postprocessing/ShaderPass.js"></script>
+    <script src="js/postprocessing/MaskPass.js"></script>
+
+    <script>
+      /* STEP 4 code onwards goes here */
+
+      var SCREEN_WIDTH = window.innerWidth,
+        SCREEN_HEIGHT = window.innerHeight,
+        mouseX = 0,
+        mouseY = 0,
+        windowHalfX = window.innerWidth / 2,
+        windowHalfY = window.innerHeight / 2,
+        camera,
+        scene,
+        renderer,
+        water,
+        waterHt = 1;
+
+      var textureLoader = new THREE.TextureLoader();
+      var composer,
+        shaderTime = 0,
+        filmPass,
+        renderPass,
+        copyPass,
+        effectVignette,
+        group,
+        lastVal = 0;
+
+      function init() {
+        var container = document.createElement("div");
+        document.body.appendChild(container);
+        camera = new THREE.PerpectiveCamera(
+          75,
+          SCREEN_WIDTH / SCREEN_HEIGHT,
+          1,
+          10000
+        );
+        camera.position.set(2000, 100, 0);
+        scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0xb6d9e6, 0.0025);
+        renderer = new THREE.WebGLRenderer({
+          antialias: true
+        });
+
+        renderer.setClearColor(0xadc9d4);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        rendere.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendCHild(renderer.domElement);
+
+        var light = new THREE.HemisphereLight(0xa1e2f5, 0x6f4d25, 0.5);
+        scene.add(light);
+        renderPass = new THREE.RenderPass(scene, camera);
+        hblur = new THREE.ShaderPass(THREE.HorizontalTiltShiftShader);
+        vblur = new THREE.ShaderPass(THREE.VerticalTiltShiftShader);
+        filmPass = new THREE.ShaderPass(THREE.FilmShader);
+        effectVignette = new THREE.ShaderPass(THREE.VignetteShader);
+        copyPass = new THREE.ShaderPass(THREE.CopyShader);
+
+        params();
+        group = new THREE.Group();
+        scene.add(group);
+        var cloud = textureLoader.load("img/cloud.png");
+        material = new THREE.SpriteMaterial({
+          map: cloud,
+          opacity: 0.6,
+          color: 0x888888,
+          fog: true
+        });
+
+        for (j = 0; j < 8; j++) {
+          var g = new THREE.Group();
+          for (i = 0; i < 35; i++) {
+            var x = 400 * Math.random() - 200;
+            var y = 60 * Math.random() + 60;
+            var z = 400 * Math.random() - 200;
+            sprite = new THREE.Sprite(material);
+            sprite.position.set(x, y, z);
+          }
+        }
+
+        // Step 12
+      }
+
+      /* DEFAULT CODE */
+
+      function onWindowResize() {
+        windowHalfX = window.innerWidth / 2;
+        windowHalfY = window.innerHeight / 2;
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      function onDocumentMouseMove(event) {
+        mouseX = event.clientX - windowHalfX;
+        mouseY = event.clientY - windowHalfY;
+      }
+
+      function onDocumentTouchStart(event) {
+        if (event.touches.length > 1) {
+          event.preventDefault();
+          mouseX = event.touches[0].pageX - windowHalfX;
+          mouseY = event.touches[0].pageY - windowHalfY;
+        }
+      }
+
+      function onDocumentTouchMove(event) {
+        if (event.touches.length == 1) {
+          event.preventDefault();
+          mouseX = event.touches[0].pageX - windowHalfX;
+          mouseY = event.touches[0].pageY - windowHalfY;
+        }
+      }
+
+      function params() {
+        var bluriness = 5;
+        hblur.uniforms["h"].value = bluriness / window.innerWidth;
+        vblur.uniforms["v"].value = bluriness / window.innerHeight;
+        hblur.uniforms["r"].value = vblur.uniforms["r"].value = 0.5;
+        filmPass.uniforms.grayscale.value = 0;
+        filmPass.uniforms["sCount"].value = 0;
+        filmPass.uniforms["sIntensity"].value = 0.4;
+        filmPass.uniforms["nIntensity"].value = 0.4;
+        effectVignette.uniforms["offset"].value = 0.95;
+        effectVignette.uniforms["darkness"].value = 1.8;
+      }
+    </script>
+  </body>
+</html>
