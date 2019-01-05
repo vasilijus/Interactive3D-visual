@@ -117,7 +117,15 @@
           }
         }
 
-        // Step 12
+          // Step 12
+
+          var loader = new THREE.ColladaLoader();
+        loader.options .convertUpAxis = true;
+        loader.load('scene.dae', function(collada) {
+          var dae = collada.scene;
+          dae.traverse(function)
+        });
+
       }
 
       /* DEFAULT CODE */
