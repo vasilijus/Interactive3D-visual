@@ -117,17 +117,88 @@
           }
         }
 
+        // Step 12
+
+        var loader = new THREE.ColladaLoader();
+        loader.options.convertUpAxis = true;
+        loader.load("scene.dae", function(collada) {
+          var dae = collada.scene;
+
+          dae.traverse(function(child) {
+            if (child instanceof THREE.Mesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+            }
+          });
+
           // Step 12
 
-          var loader = new THREE.ColladaLoader();
-        loader.options .convertUpAxis = true;
-        loader.load('scene.dae', function(collada) {
-          var dae = collada.scene;
-          dae.traverse(function)
+          dae.scale.x = dae.scale.y = dae.scale.z = 0.5;
+          dae.updateMatrix();
+          group.add(dae);
+          water = scene.getObjectByName("Water", true);
+          water = water.children[0];
+          light.scene.getObjectByName("SpLight", true);
+          light = light.children[0];
+
+          // Step 12
+
+          light.target.position.set(0, 0, 0);
+          light.castShadow = true;
+          light.shadow = new THREE.LightShadow(
+            new THREE.PerspectiveCamera(90, 1, 90, 5000)
+          );
+          light.shadow.bias = 0.0008;
+          light.shadow.mapSize.width = 1024;
+          light.shadow.mapSize.height = 1024;
+          light.penumbra = 1;
+          light.decay = 5;
+          render();
         });
 
+        // Step 15
+        document.addEventListener("mousemove", onDocumentMouseMove, false);
+        document.addEventListener("touchstart", onDocumentTouchStart, false);
+        document.addEventListener("touchmove", onDocumentTouchMove, false);
+        document.addEventListener("resize", onWindowResize, false);
+
+        // Step 17
+
+        shaderTime += 0.1;
+        filmPass.uniforms["time"].value = shaderTime;
+        composer.render(0.1);
+        TWEEN.update();
       }
 
+      // Step 18
+
+      function showVal(val) {
+        if (val != lastVal) {
+          if (val > lastVal) {
+            new TWEEN.Tween(group.children[val].scale)
+              .to({ x: 1, y: 1, z: 1 }, 800)
+              .easing(TWEEM.Easing.Quadratic.InOut)
+              .start();
+            waterHt += 0.07;
+            new TWEEN.Tween(water.scale)
+              .to({ y: waterHt }, 800)
+              .easing(TWEEN.Easing.Quadratic.InOut)
+              .start();
+
+            // Step 20
+
+            new TWEEN.Tween(group.children[lastVal].scale)
+              .to({ x: 0.001, y: 0.001, z: 0.001 }, 800)
+              .easing(TWEEM.Easing.Quadratic.InOut)
+              .start();
+            waterHt -= 0.07;
+            new TWEEN.Tween(water.scale)
+              .to({ y: waterHt }, 800)
+              .easing(TWEEN.Easing.Quadratic.InOut)
+              .start();
+          }
+        }
+      }
       /* DEFAULT CODE */
 
       function onWindowResize() {
